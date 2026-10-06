@@ -29,7 +29,10 @@ macro_rules! export_to_so {
           use $crate::vtable::PluginVTable;
           use $crate::handles::PluginHandle;
 
-          extern "C" fn name_impl(this: *const ()) -> FfiString {}
+          extern "C" fn name_impl(this: *const ()) -> FfiString {
+              let plugin = unsafe { &*(this as *const $ty) }
+              FfiString::from_string($crate::Plugin::name(plugin).to_owned())
+          }
           extern "C" fn validate_impl(
               this: *const (),
               raw_ctx: *const RawContext,
