@@ -19,9 +19,6 @@ impl<'a> Context<'a> {
     pub fn log(&self, msg: &str) {
         (self.raw.vtable.log)(self.raw.host_state, FfiStr::from_str(msg))
     }
-    pub fn report_progress(&self, indicator: f32, msg: &str) {
-        (self.raw.vtable.report_progress)(self.raw.host_state, indicator, FfiStr::from_str(msg))
-    }
     pub fn should_cancel(&self) -> bool {
         (self.raw.vtable.should_cancel)(self.raw.host_state)
     }

@@ -34,11 +34,9 @@ impl Library {
         }
     }
     pub fn symbol<T: Copy>(&self, name: &[u8]) -> Result<T, String> {
-        assert_eq!(
-            size_of::<T>(),
-            size_of::<*mut c_void>(),
-            "symbol::<T> must be called with a function pointer sized type",
-        );
+        if size_of::<T>() == size_of::<*mut c_void>() {
+            return Err("symbol::<T> must be called with a function pointer sized type".to_owned());
+        }
         let name = CString::new(name).map_err(|_| "symbol name contains null byte")?;
 
         unsafe {
