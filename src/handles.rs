@@ -25,12 +25,18 @@ impl PluginHandle {
         let res: Result<(), ErrorInfo> = (self.vtable.validate_config)(self.instance, context, &ffi_cnf as *const PluginValue).into();
         res.map_err(|e| e.to_host())
     }
-    pub(crate) fn set_acme_challenge(&self, context: &RawContext, config: &HostValue) -> Result<HostValue, HostError> {
+    pub(crate) fn set_acme_challenge(&self,
+                                     context: &RawContext,
+                                     config: &HostValue
+    ) -> Result<HostValue, HostError> {
         let ffi_cnf = config.to_ffi();
         let res: Result<PluginValue, ErrorInfo> = (self.vtable.set_acme_challenge)(self.instance, context, &ffi_cnf as *const PluginValue).into();
         Self::extract_execution_result(res)
     }
-    pub(crate) fn unset_acme_challenge(&self, context: &RawContext, config: &HostValue) -> Result<HostValue, HostError> {
+    pub(crate) fn unset_acme_challenge(&self,
+                                       context: &RawContext,
+                                       config: &HostValue
+    ) -> Result<HostValue, HostError> {
         let ffi_cnf = config.to_ffi();
         let res: Result<PluginValue, ErrorInfo> = (self.vtable.unset_acme_challenge)(self.instance, context, &ffi_cnf as *const PluginValue).into();
         Self::extract_execution_result(res)

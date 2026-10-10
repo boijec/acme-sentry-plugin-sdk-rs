@@ -23,7 +23,7 @@ pub trait Plugin: Default {
 macro_rules! export_to_so {
     ($ty:ty) => {
       const _: () = {
-          use $crate::context::{Context, RawContext}
+          use $crate::context::{Context, RawContext};
           use $crate::error::ErrorInfo;
           use $crate::value::PluginValue;
           use $crate::ffi::{FfiString, FfiResult};
@@ -31,15 +31,19 @@ macro_rules! export_to_so {
           use $crate::handles::PluginHandle;
 
           extern "C" fn name_impl(this: *const ()) -> FfiString {
-              let plugin = unsafe { &*(this as *const $ty) }
+              let plugin = unsafe {
+                  &*(this as *const $ty)
+              };
               FfiString::from_string($crate::Plugin::name(plugin).to_owned())
           }
           extern "C" fn validate_config_impl(
               this: *const (),
               raw_ctx: *const RawContext,
-              config: *const PluginValue
+              config: *const PluginValue,
           ) -> FfiResult<(), ErrorInfo> {
-              let plugin = unsafe { &*(this as *const $ty) }
+              let plugin = unsafe {
+                  &*(this as *const $ty)
+              };
               let ctx = Context::__from_raw(unsafe { &*raw_ctx });
               let config = unsafe { &*config };
               let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -57,16 +61,18 @@ macro_rules! export_to_so {
           extern "C" fn set_acme_challenge_impl(
               this: *const (),
               raw_ctx: *const RawContext,
-              config: *const PluginValue
+              config: *const PluginValue,
           ) -> FfiResult<PluginValue, ErrorInfo> {
-              let plugin = unsafe { &*(this as *const $ty) }
+              let plugin = unsafe {
+                  &*(this as *const $ty)
+              };
               let ctx = Context::__from_raw(unsafe { &*raw_ctx });
               let config = unsafe { &*config };
               let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                   $crate::Plugin::set_acme_challenge(plugin, &ctx, config)
               }));
               match result {
-                  Ok(Ok(())) => FfiResult::Ok(()),
+                  Ok(Ok(v)) => FfiResult::Ok(v),
                   Ok(Err(e)) => FfiResult::Err(e.into()),
                   Err(_) => FfiResult::Err(ErrorInfo {
                       code: -1,
@@ -77,20 +83,22 @@ macro_rules! export_to_so {
           extern "C" fn unset_acme_challenge_impl(
               this: *const (),
               raw_ctx: *const RawContext,
-              config: *const PluginValue
+              config: *const PluginValue,
           ) -> FfiResult<PluginValue, ErrorInfo> {
-              let plugin = unsafe { &*(this as *const $ty) }
+              let plugin = unsafe {
+                  &*(this as *const $ty)
+              };
               let ctx = Context::__from_raw(unsafe { &*raw_ctx });
               let config = unsafe { &*config };
               let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                   $crate::Plugin::unset_acme_challenge(plugin, &ctx, config)
               }));
               match result {
-                  Ok(Ok(())) => FfiResult::Ok(()),
+                  Ok(Ok(v)) => FfiResult::Ok(v),
                   Ok(Err(e)) => FfiResult::Err(e.into()),
                   Err(_) => FfiResult::Err(ErrorInfo {
                       code: -1,
-                      message: FfiString::from_string("plugin panicked during set of acme challenge".into())
+                      message: FfiString::from_string("plugin panicked during unset of acme challenge".into())
                   })
               }
           }
@@ -102,19 +110,21 @@ macro_rules! export_to_so {
 
           static VTABLE: PluginVTable = PluginVTable {
               name: name_impl,
-              validate: validate_impl,
-              execute: execute_impl,
+              validate_config: validate_config_impl,
+              set_acme_challenge: set_acme_challenge_impl,
+              unset_acme_challenge: unset_acme_challenge_impl,
               drop: drop_impl,
-          }
+          };
 
           #[unsafe(no_mangle)]
           pub extern "C" fn _plugin_entrypoint() -> PluginHandle {
               let on_heap = Box::new(<$ty as Default>::default());
               PluginHandle::__new(Box::into_raw(on_heap) as *mut (), &VTABLE)
           }
+
           #[unsafe(no_mangle)]
           pub extern "C" fn _plugin_layout() -> u64 {
-              $crate:plugin_fingerprint()
+              $crate::plugin_fingerprint()
           }
       };
     };
