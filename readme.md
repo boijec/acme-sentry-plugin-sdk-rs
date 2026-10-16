@@ -22,11 +22,11 @@ It protects against honest mistakes, not malicious plugins. See also [when not t
 crate-type = ["cdylib"]
  
 [dependencies]
-acme_sentry_plugin_sdk_rs = { git  = "https://github.com/boijec/acme-sentry-plugin-sdk-rs" }
+plugin_sdk = { git  = "https://github.com/boijec/acme-sentry-plugin-sdk-rs" }
 ```
  
 ```rust
-use acme_sentry_plugin_sdk_rs::{export_plugin, Context, Plugin, PluginError, Value};
+use plugin_sdk::{export_plugin, Context, Plugin, PluginError, Value};
  
 #[derive(Default)]
 struct Downloader;
@@ -71,7 +71,7 @@ impl Plugin for Downloader {
     }
 }
  
-export_plugin!(Downloader);
+export_to_so!(Downloader);
 ```
 
 No `unsafe`, no `extern "C"`: the macro generates the entry points, panic handling and vtable.
